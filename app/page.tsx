@@ -1,113 +1,115 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import axios from "axios";
 
 export default function Home() {
+  const [summonerName, setSummonerName] = useState("");
+  const [summonerTag, setSummonerTag] = useState("");
+  const [gameData, setGameData] = useState(null);
+  const [error, setError] = useState("");
+
+  const getSummonerByName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setGameData(null);
+
+    try {
+      // 소환사 정보 가져오기
+      const summonerResponse = await axios.get(
+        `http://localhost:3001/api/summoner/${summonerName}/${summonerTag}`
+      );
+      const { puuid } = summonerResponse.data;
+
+      // 현재 게임 정보 가져오기
+      const currentGameResponse = await axios.get(
+        `http://localhost:3001/api/current-game/${puuid}`
+      );
+      const currentGameData = currentGameResponse.data;
+
+      // 각 플레이어의 랭크 정보 가져오기
+      const playersInfo = await Promise.all(
+        currentGameData.participants.map(async (participant) => {
+          const summonerInfoResponse = await axios.get(
+            `http://localhost:3001/api/summoner-info/${participant.summonerId}`
+          );
+          return {
+            ...participant,
+            rankInfo: summonerInfoResponse.data,
+          };
+        })
+      );
+
+      // 포지션 매칭 확인
+      const analyzedData = analyzePositions(playersInfo);
+
+      setGameData(analyzedData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setError("데이터를 가져오는 중 오류가 발생했습니다.");
+    }
+  };
+
+  const analyzePositions = (players) => {
+    // 여기에 포지션 매칭 로직을 구현합니다.
+    // 예: 각 플레이어의 주 포지션과 현재 게임에서의 포지션을 비교
+    return players.map((player) => ({
+      ...player,
+      isInMainPosition: checkMainPosition(player.rankInfo, player.position),
+    }));
+  };
+
+  const checkMainPosition = (rankInfo, currentPosition) => {
+    // 플레이어의 주 포지션을 판단하는 로직을 구현합니다.
+    // 이는 rankInfo를 기반으로 할 수 있습니다.
+    // 예시 로직입니다. 실제 구현은 더 복잡할 수 있습니다.
+    const mainPosition = rankInfo[0]?.position; // 가장 높은 티어의 포지션을 주 포지션으로 가정
+    return mainPosition === currentPosition;
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
+          <h1 className="text-2xl font-semibold mb-5">LoL In-Game Analyzer</h1>
+          <form onSubmit={getSummonerByName}>
+            <input
+              type="text"
+              value={summonerName}
+              onChange={(e) => setSummonerName(e.target.value)}
+              placeholder="소환사 이름"
+              className="px-3 py-2 border border-gray-300 rounded-md w-full mb-3"
             />
-          </a>
+            <input
+              type="text"
+              value={summonerTag}
+              onChange={(e) => setSummonerTag(e.target.value)}
+              placeholder="소환사 태그"
+              className="px-3 py-2 border border-gray-300 rounded-md w-full mb-3"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-full"
+            >
+              분석 시작
+            </button>
+          </form>
+          {error && <p className="text-red-500 mt-3">{error}</p>}
+          {gameData && (
+            <div className="mt-5">
+              <h2 className="text-xl font-semibold mb-3">게임 분석 결과</h2>
+              {gameData.map((player, index) => (
+                <div key={index} className="mb-2">
+                  <p>
+                    {player.summonerName}:{" "}
+                    {player.isInMainPosition ? "주 포지션" : "부 포지션"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
