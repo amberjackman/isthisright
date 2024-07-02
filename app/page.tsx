@@ -59,25 +59,12 @@ const MyComponent = () => {
             {matches.map((match) => (
               <li key={match.matchId} className="bg-gray-200 p-4 rounded-lg">
                 <p>Match ID: {match.matchId}</p>
-                <h3 className="font-semibold mt-2">Participant Frames:</h3>
-                {Object.entries(match.participantFrames).map(
-                  ([participantId, data]) => (
-                    <div key={participantId} className="ml-4 mt-1">
-                      <p>Participant ID: {participantId}</p>
-                      <p>All In Pings: {data.allInPings}</p>
-                      <p>Assist Me Pings: {data.assistMePings}</p>
-                      <p>Command Pings: {data.commandPings}</p>
-                      <p>Enemy Missing Pings: {data.enemyMissingPings}</p>
-                      <p>Enemy Vision Pings: {data.enemyVisionPings}</p>
-                      <p>Hold Ping: {data.holdPing}</p>
-                      <p>Get Back Pings: {data.getBackPings}</p>
-                      <p>Need Vision Pings: {data.needVisionPings}</p>
-                      <p>On My Way Pings: {data.onMyWayPings}</p>
-                      <p>Push Pings: {data.pushPings}</p>
-                      <p>Vision Cleared Pings: {data.visionClearedPings}</p>
-                    </div>
-                  )
-                )}
+                <h3 className="font-semibold mt-2">Ping Data:</h3>
+                {Object.entries(match.pingData).map(([key, value]) => (
+                  <p key={key}>
+                    {key}: {value}
+                  </p>
+                ))}
               </li>
             ))}
           </ul>
