@@ -1,28 +1,28 @@
 "use client";
-
 import { useState } from "react";
-import axios from "axios";
+import useStore from "../store/useStore";
 
 const MyComponent = () => {
   const [summonerName, setSummonerName] = useState("");
   const [summonerTag, setSummonerTag] = useState("");
-  const [summonerData, setSummonerData] = useState(null);
+  const { matches, fetchMatches } = useStore((state) => ({
+    matches: state.matches,
+    fetchMatches: state.fetchMatches,
+  }));
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
+    setIsLoading(true);
     try {
-      const response = await axios.get(
-        `/api/summoner?name=${encodeURIComponent(
-          summonerName
-        )}&tag=${encodeURIComponent(summonerTag)}`
-      );
-      setSummonerData(response.data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setError("오류");
+      await fetchMatches(summonerName, summonerTag);
+      setIsLoading(false);
+    } catch (err) {
+      setIsLoading(false);
+      setError("매치 데이터를 가져오는 중 오류가 발생했습니다: " + err.message);
+      console.error("Error details:", err);
     }
   };
 
@@ -46,18 +46,41 @@ const MyComponent = () => {
         <button
           type="submit"
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-300"
+          disabled={isLoading}
         >
-          검색
+          {isLoading ? "로딩 중..." : "검색"}
         </button>
       </form>
-
       {error && <p className="text-red-500 mt-4">{error}</p>}
-      {summonerData && (
+      {matches.length > 0 && (
         <div className="mt-4">
-          <h2 className="text-lg font-semibold mb-2">Summoner Data</h2>
-          <pre className="bg-gray-200 p-4 rounded-lg">
-            {JSON.stringify(summonerData, null, 2)}
-          </pre>
+          <h2 className="text-lg font-semibold mb-2">Match Data</h2>
+          <ul className="space-y-2">
+            {matches.map((match) => (
+              <li key={match.matchId} className="bg-gray-200 p-4 rounded-lg">
+                <p>Match ID: {match.matchId}</p>
+                <h3 className="font-semibold mt-2">Participant Frames:</h3>
+                {Object.entries(match.participantFrames).map(
+                  ([participantId, data]) => (
+                    <div key={participantId} className="ml-4 mt-1">
+                      <p>Participant ID: {participantId}</p>
+                      <p>All In Pings: {data.allInPings}</p>
+                      <p>Assist Me Pings: {data.assistMePings}</p>
+                      <p>Command Pings: {data.commandPings}</p>
+                      <p>Enemy Missing Pings: {data.enemyMissingPings}</p>
+                      <p>Enemy Vision Pings: {data.enemyVisionPings}</p>
+                      <p>Hold Ping: {data.holdPing}</p>
+                      <p>Get Back Pings: {data.getBackPings}</p>
+                      <p>Need Vision Pings: {data.needVisionPings}</p>
+                      <p>On My Way Pings: {data.onMyWayPings}</p>
+                      <p>Push Pings: {data.pushPings}</p>
+                      <p>Vision Cleared Pings: {data.visionClearedPings}</p>
+                    </div>
+                  )
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
