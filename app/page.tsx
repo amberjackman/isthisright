@@ -27,21 +27,21 @@ const MyComponent = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-gray-100 rounded-lg shadow-lg">
+    <div className="max-w-md mx-auto mt-8 p-6 bg-black rounded-lg shadow-lg text-white">
       <form onSubmit={handleFormSubmit} className="space-y-4">
         <input
           type="text"
           value={summonerName}
           onChange={(e) => setSummonerName(e.target.value)}
           placeholder="소환사명"
-          className="block w-full px-4 py-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300"
+          className="block w-full px-4 py-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 bg-gray-800 text-white"
         />
         <input
           type="text"
           value={summonerTag}
           onChange={(e) => setSummonerTag(e.target.value)}
           placeholder="# 제외한 소환사 태그"
-          className="block w-full px-4 py-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300"
+          className="block w-full px-4 py-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 bg-gray-800 text-white"
         />
         <button
           type="submit"
@@ -57,11 +57,11 @@ const MyComponent = () => {
           <h2 className="text-lg font-semibold mb-2">Match Data</h2>
           <ul className="space-y-2">
             {matches.map((match) => (
-              <li key={match.matchId} className="bg-gray-200 p-4 rounded-lg">
-                <p>Match ID: {match.matchId}</p>
-                <h3 className="font-semibold mt-2">Ping Data:</h3>
+              <li key={match.matchId} className="bg-gray-800 p-4 rounded-lg">
+                <p className="text-white">Match ID: {match.matchId}</p>
+                <h3 className="font-semibold mt-2 text-white">Ping Data:</h3>
                 {Object.entries(match.pingData).map(([key, value]) => (
-                  <p key={key}>
+                  <p key={key} className="text-white">
                     {key}: {value}
                   </p>
                 ))}
