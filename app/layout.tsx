@@ -1,5 +1,14 @@
 import "../public/globals.css";
-import type { Metadata } from "next";
+
+interface Metadata {
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogType: string;
+  twitterTitle: string;
+  twitterDescription: string;
+}
 
 export const metadata: Metadata = {
   title: "Am I Noisy?",
