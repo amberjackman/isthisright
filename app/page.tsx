@@ -58,7 +58,7 @@ const MyComponent = () => {
               src="/images/Landing_Logo_design.png"
               alt="logo"
             />
-            <div className=" w-full p-6 bg-black rounded-lg shadow-lg text-white">
+            <div className=" w-full p-6 rounded-lg shadow-lg text-white">
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <input
                   type="text"
