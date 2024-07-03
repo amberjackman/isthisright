@@ -1,4 +1,5 @@
 import "../public/globals.css";
+import { FontClassNames } from "../public/font";
 
 interface Metadata {
   title: string;
@@ -27,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="FontClassNames">{children}</body>
     </html>
   );
 }
