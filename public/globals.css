@@ -20,7 +20,6 @@
 body {
   /* color: rgb(var(--foreground-rgb)); */
   @apply font-sans;
-  background-color: rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
@@ -31,6 +30,12 @@ body {
 
 @layer base {
   html {
+    background-color: #d6dbdc;
     font-family: "NanumSquareOTF", "Press Start 2P", sans-serif;
   }
 }
+
+/* .flow-text:hover .flow-wrap {
+  animation-play-state: paused;
+  cursor: pointer;
+} */
