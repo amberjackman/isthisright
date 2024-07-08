@@ -28,11 +28,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <html lang="en">
+      <body className="FontClassNames">{children}</body>
       <Analytics />
-      <html lang="en">
-        <body className="FontClassNames">{children}</body>
-      </html>
-    </>
+    </html>
   );
 }
