@@ -51,7 +51,7 @@ const useStore = create<State>((set) => ({
         set({ matches: response.data, isLoading: false, error: null });
       }
     } catch (error) {
-      console.error("Error fetching matches:", error);
+      // console.error("Error fetching matches:", error);
       let errorMessage = "An unknown error occurred";
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 400) {
