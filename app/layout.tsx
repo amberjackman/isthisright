@@ -1,5 +1,6 @@
 import "../public/globals.css";
 import { FontClassNames } from "../public/font";
+import { Analytics } from "@vercel/analytics/react";
 
 interface Metadata {
   title: string;
@@ -28,6 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <Analytics />
       <body className="FontClassNames">{children}</body>
     </html>
   );
