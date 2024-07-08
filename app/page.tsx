@@ -19,27 +19,28 @@ const MyComponent = () => {
   }));
 
   useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
     let timer;
     if (isButtonDisabled && countdown > 0) {
       timer = setInterval(() => {
         setCountdown((prevCount) => prevCount - 1);
-        toast.info(`${countdown}초 후 검색할 수 있습니다.`, {
-          toastId: "countdown",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
       }, 1000);
     } else if (countdown === 0) {
       setIsButtonDisabled(false);
     }
     return () => clearInterval(timer);
   }, [isButtonDisabled, countdown]);
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    await fetchMatches(summonerName, summonerTag);
-    if (error) {
-      toast.error(error);
+    if (!isButtonDisabled) {
+      setIsButtonDisabled(true);
+      setCountdown(5);
+      await fetchMatches(summonerName, summonerTag);
     }
   };
 

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
