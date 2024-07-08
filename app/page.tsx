@@ -1,30 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useStore from "../store/useStore";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Nanum_Gothic, Press_Start_2P } from "next/font/google";
 
 const MyComponent = () => {
   const [summonerName, setSummonerName] = useState("");
   const [summonerTag, setSummonerTag] = useState("");
-  const { matches, fetchMatches } = useStore((state) => ({
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const { matches, fetchMatches, isLoading, error } = useStore((state) => ({
     matches: state.matches,
     fetchMatches: state.fetchMatches,
+    isLoading: state.isLoading,
+    error: state.error,
   }));
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (isButtonDisabled && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prevCount) => prevCount - 1);
+        toast.info(`${countdown}초 후 검색할 수 있습니다.`, {
+          toastId: "countdown",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+      }, 1000);
+    } else if (countdown === 0) {
+      setIsButtonDisabled(false);
+    }
+    return () => clearInterval(timer);
+  }, [isButtonDisabled, countdown]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
-    try {
-      await fetchMatches(summonerName, summonerTag);
-      setIsLoading(false);
-    } catch (err) {
-      setIsLoading(false);
-      setError("오류가 발생했습니다: " + err.message);
-      console.error("Error details:", err);
+    await fetchMatches(summonerName, summonerTag);
+    if (error) {
+      toast.error(error);
     }
   };
 
@@ -59,9 +74,9 @@ const MyComponent = () => {
               alt="logo"
             />
 
-            <div className="flex w-lvw h-5 m-3 flex-nowrap overflow-hidden transition duration-300 shadow-xl text-md font-bold bg-gray-600 opacity-95 text-gray-400 hover:text-white">
+            <div className="flex w-lvw h-6 m-3 flex-nowrap overflow-hidden transition duration-300 shadow-xl text-md font-bold bg-gray-600 opacity-95 text-gray-400 hover:text-white">
               <div className="flex flow-wrap h-6 w-fit animate-textLoop hover:pause-textLoop pr-[1.5vw]">
-                <div className="whitespace-nowrap">
+                <div className="justify-center text-center whitespace-nowrap">
                   hide on bush#KR1(FAKER) : 27.4회 T1 Gumayusi#KR1 : 74회
                   kiin#KR1 : 11.2회 JUGKING#KR1(Canyon) : 8.6회 God
                   Thunder#KR1(Zeus) : 86회{" "}
@@ -86,13 +101,21 @@ const MyComponent = () => {
                 />
                 <button
                   type="submit"
-                  className="w-full bg-indigo-600 text-white py-3 px-4 rounded-md hover:bg-indigo-700 transition duration-300"
-                  disabled={isLoading}
+                  className={`w-full bg-indigo-600 text-white py-3 px-4 rounded-md transition duration-300 ${
+                    isButtonDisabled || isLoading
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-indigo-700"
+                  }`}
+                  disabled={isButtonDisabled || isLoading}
                 >
-                  {isLoading ? "로딩 중..." : "검색"}
+                  {isLoading
+                    ? "로딩 중..."
+                    : isButtonDisabled
+                    ? `${countdown}초 후 검색 가능`
+                    : "검색"}
                 </button>
               </form>
-              {error && <p className="text-red-500 mt-4">{error}</p>}
+              {/* {error && <p className="text-red-500 mt-4">{error}</p>} */}
               {matches.length > 0 && (
                 <div className="mt-4">
                   <ul className="space-y-2">
@@ -161,6 +184,7 @@ const MyComponent = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </>
   );
 };

@@ -32,18 +32,37 @@ const useStore = create<State>((set) => ({
   isLoading: false,
   error: null,
   fetchMatches: async (name: string, tag: string) => {
+    if (!name || !tag) {
+      set({ error: "이름과 태그를 정확히 입력해주세요!", isLoading: false });
+      return;
+    }
+
     set((state) => ({ ...state, isLoading: true, error: null }));
     try {
       const response = await axios.get<Match[]>(
         `/api/matches?name=${name}&tag=${tag}`
       );
+
+      if (response.data.length === 0) {
+        throw new Error("소환사를 찾을 수 없습니다!");
+      }
+
       set((state) => ({ ...state, matches: response.data, isLoading: false }));
     } catch (error) {
       console.error("Error fetching matches:", error);
+      let errorMessage = "An unknown error occurred";
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 400) {
+          errorMessage = "이름과 태그를 정확히 입력해주세요!";
+        } else if (error.response?.status === 500) {
+          errorMessage = "소환사를 찾을 수 없습니다!";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
       set((state) => ({
         ...state,
-        error:
-          error instanceof Error ? error.message : "An unknown error occurred",
+        error: errorMessage,
         isLoading: false,
       }));
     }
