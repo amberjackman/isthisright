@@ -6,19 +6,14 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY;
 async function fetchWithRetry(url: string, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      // console.log(`Fetching data from ${url}, attempt ${i + 1}`);
       const response = await axios.get(url, {
         headers: { "X-Riot-Token": RIOT_API_KEY },
       });
-      // console.log(`Successfully fetched data from ${url}`);
+
       return response.data;
     } catch (error) {
-      // console.error(
-      //   `Error fetching data from ${url}, attempt ${i + 1}:`,
-      //   error
-      // );
       if (i === retries - 1) throw error;
-      // console.log(`Retrying ${url} after 1 second...`);
+
       await new Promise((res) => setTimeout(res, 1000));
     }
   }
@@ -30,26 +25,22 @@ export async function GET(request: Request) {
   const tag = searchParams.get("tag");
 
   if (!name || !tag) {
-    // console.log("Name and tag are required");
     return NextResponse.json(
-      { error: "Name and tag are required" },
+      { error: "소환사 이름을 입력해주세요!" },
       { status: 400 }
     );
   }
 
   try {
-    // console.log(`Fetching account data for ${name}/${tag}`);
     const accountData = await fetchWithRetry(
       `https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${name}/${tag}`
     );
     const puuid = accountData.puuid;
 
-    // console.log(`Fetching match IDs for ${puuid}`);
     const matchIds = await fetchWithRetry(
       `https://asia.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?count=5`
     );
 
-    // console.log(`Fetching match details for ${matchIds}`);
     const matchDetails = [];
     for (const matchId of matchIds) {
       const matchData = await fetchWithRetry(
@@ -58,14 +49,12 @@ export async function GET(request: Request) {
       matchDetails.push(matchData);
     }
 
-    // console.log("Processing match data");
     const processedMatches = matchDetails.map((match) => {
       const participant = match.info.participants.find(
         (participant) => participant.puuid === puuid
       );
 
       if (!participant) {
-        // console.error(`Participant with puuid ${puuid} not found in match`);
         return {
           matchId: match.metadata.matchId,
           pingData: {},
@@ -80,7 +69,6 @@ export async function GET(request: Request) {
           pingsData[key] = value;
         }
       });
-      // console.log(pingsData);
 
       return {
         matchId: match.metadata.matchId,
@@ -100,12 +88,10 @@ export async function GET(request: Request) {
       };
     });
 
-    // console.log("Processed matches:", processedMatches);
     return NextResponse.json(processedMatches);
   } catch (error) {
-    // console.error("Error fetching matches:", error);
     return NextResponse.json(
-      { error: "Error fetching matches" },
+      { error: "Error in fetching matches" },
       { status: 500 }
     );
   }

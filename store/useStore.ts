@@ -51,8 +51,7 @@ const useStore = create<State>((set) => ({
         set({ matches: response.data, isLoading: false, error: null });
       }
     } catch (error) {
-      // console.error("Error fetching matches:", error);
-      let errorMessage = "An unknown error occurred";
+      let errorMessage = "unknown error";
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 400) {
           errorMessage = "이름과 태그를 정확히 입력해주세요!";
